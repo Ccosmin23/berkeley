@@ -63,7 +63,6 @@ class Server {
         }
     }
 
-    // Metodă pentru a sincroniza timpul cu fiecare client
     public synchronized void syncTimeWith(Client client) {
         client.setLocalTime(serverTime);
         setTimeOffsetFor(client);

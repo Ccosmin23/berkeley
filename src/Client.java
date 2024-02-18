@@ -7,15 +7,12 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-// Clasa care reprezintă un client în rețeaua locală
 class Client implements Serializable {
     private String serverAddress = "192.168.30.10";
     private int serverPort = 9700;
     private String ipAddress;
-    private long clientTime;
-
-    private int timeOffset; // Diferența de timp între server și client
     private ServerSocket serverSocket;
+    private long clientTime;
 
     public Client() {
         clientTime = TimeUtils.getLocalTime();
@@ -38,49 +35,6 @@ class Client implements Serializable {
             e.printStackTrace();
         }
     }
-
-    private void afisareOraCurenta() {
-        Date res = new Date(clientTime);
-        DateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
-        System.out.println("[client] ora curenta este: " + sdf1.format(res));
-    }
-
-    private void afisareOra(long miliseconds) {
-        Date res = new Date(miliseconds);
-        DateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
-        System.out.println("[client] ora veche a fost: " + sdf1.format(res));
-    }
-
-    public int getTimeOffset() {
-        return timeOffset;
-    }
-
-    // Metodă pentru a seta diferența de timp între server și client
-    public void setTimeOffset(int timeOffset) {
-        this.timeOffset = timeOffset;
-    }
-
-    // Metodă pentru a obține timpul local ajustat
-    public long getAdjustedLocalTime() {
-        return TimeUtils.getLocalTime() + timeOffset;
-    }
-
-    public long getLocalTime() {
-        return clientTime;
-    }
-
-    public void setLocalTime(long time) {
-        clientTime = time;
-    }
-
-    public String getIPAddress() {
-        return ipAddress;
-    }
-
-    public void setIPAddress(String ipAddress) {
-        this.ipAddress = ipAddress;
-    }
-
 
     public Thread receive () {
         return new Thread(new Runnable() {
@@ -105,15 +59,14 @@ class Client implements Serializable {
 
                         Client clientulActualizat = (Client) ois.readObject();
 
-                        System.out.println("Ora a fost actualizata");
-
                         if(clientulActualizat.ipAddress.equals(InetAddress.getLocalHost().getHostAddress())) {
-                            afisareOra(clientTime);
+                            System.out.println("\nOra a fost actualizata");
 
+                            afisareOra(clientTime);
                             setLocalTime(clientulActualizat.clientTime);
                             afisareOraCurenta();
                         } else {
-                            System.out.println("nu este pentru mine" + clientulActualizat.ipAddress + " ggg " + InetAddress.getLocalHost().getHostAddress());
+                            System.out.println("nu este pentru mine" + clientulActualizat.ipAddress);
                         }
 
 
@@ -125,5 +78,25 @@ class Client implements Serializable {
                 }
             }
         });
+    }
+
+    private void afisareOraCurenta() {
+        Date res = new Date(clientTime);
+        DateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
+        System.out.println("[client] ora curenta este: " + sdf1.format(res));
+    }
+
+    private void afisareOra(long miliseconds) {
+        Date res = new Date(miliseconds);
+        DateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
+        System.out.println("[client] ora veche a fost: " + sdf1.format(res));
+    }
+
+    public void setLocalTime(long time) {
+        clientTime = time;
+    }
+
+    public String getIPAddress() {
+        return ipAddress;
     }
 }
