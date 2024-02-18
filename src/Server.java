@@ -14,35 +14,34 @@ class Server {
         userInputHandler();
     }
 
-    // Metodă pentru a sincroniza timpul cu fiecare client
-    public synchronized void syncTimeWithClient(int clientTime) {
-        // Calculăm diferența de timp între server și client
-        int serverTime = (int) (System.currentTimeMillis() / 1000);
-        int timeOffset = clientTime - serverTime;
-
-        // Setăm diferența de timp pentru client adica ii trimitem clientului noua valoare a timpului
-        setTimeOffset(timeOffset);
-    }
-
-    public void setTimeOffset(int timeOffset) {
-        try (Socket socket = new Socket("192.168.30.10", 9700);
-             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream())) {
-            oos.writeObject(timeOffset);
-        } catch (IOException e) {
-            System.out.println("eroare la setarea offset-ului");
-        }
-    }
-
     private void sincronizeazaCeasurile() {
         if(clientsList.isEmpty()) {
             System.out.println("!!! lista de clienti este goala");
         } else {
             for (Client client: clientsList) {
-                syncTimeWithClient(client.getLocalTime());
+                syncTimeWith(client);
             }
         }
     }
 
+    // Metodă pentru a sincroniza timpul cu fiecare client
+    public synchronized void syncTimeWith(Client client) {
+        // Calculăm diferența de timp între server și client
+        int serverTime = (int) (System.currentTimeMillis() / 1000);
+        int timeOffset = client.getLocalTime() - serverTime;
+        client.setTimeOffset(timeOffset);
+        // Setăm diferența de timp pentru client adica ii trimitem clientului noua valoare a timpului
+        setTimeOffsetFor(client);
+    }
+
+    public void setTimeOffsetFor(Client client) {
+        try (Socket socket = new Socket(client.getIPAddress(), 9700);
+             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream())) {
+            oos.writeObject(client);
+        } catch (IOException e) {
+            System.out.println("eroare la setarea offset-ului");
+        }
+    }
 
     private void afisareTimpLocalClienti() {
 
