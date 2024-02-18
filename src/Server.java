@@ -5,57 +5,17 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 class Server {
     private List<Client> clientsList = new ArrayList<>();
     private ServerSocket serverSocket;
-    private Socket clientSocket;
-    int serverTime;
+    long serverTime;
 
     public void start() throws IOException, ClassNotFoundException {
-        serverTime = TimeUtils.setUTC2LocalTime();
+        serverTime = TimeUtils.getLocalTime();
+
         receive().start();
         userInputHandler();
-    }
-
-    private void sincronizeazaCeasurile() {
-        if(clientsList.isEmpty()) {
-            System.out.println("!!! lista de clienti este goala");
-        } else {
-            for (Client client: clientsList) {
-                syncTimeWith(client);
-            }
-        }
-    }
-
-    // Metodă pentru a sincroniza timpul cu fiecare client
-    public synchronized void syncTimeWith(Client client) {
-        // Calculăm diferența de timp între server și client
-        int timeOffset = client.getLocalTime() - serverTime;
-
-        client.setLocalTime(serverTime);
-        setTimeOffsetFor(client);
-    }
-
-    public void setTimeOffsetFor(Client client) {
-        try (Socket socket = new Socket(client.getIPAddress(), 9700);
-             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream())) {
-            oos.writeObject(client);
-        } catch (IOException e) {
-            System.out.println("eroare la setarea offset-ului");
-        }
-    }
-
-    private void afisareOraCurenta(int miliSeconds) {
-        System.out.println("milisec = " + miliSeconds);
-        Date res = new Date(miliSeconds);
-        DateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
-        System.out.println("\n - server, ora curenta: " + sdf1.format(res));
-    }
-
-    private void afisareTimpLocalClienti() {
-        afisareOraCurenta(serverTime);
     }
 
     public Thread receive () {
@@ -80,7 +40,7 @@ class Server {
                         Client clientAdaugat = (Client) ois.readObject();
 
                         if (clientAdaugat != null) {
-                            System.out.println("\nA fost creat un nou client cu adresa: " + clientAdaugat.getIPAddress());
+                            System.out.println("A fost creat un nou client cu adresa: " + clientAdaugat.getIPAddress());
                             clientsList.add(clientAdaugat);
                         }
                     } catch (IOException e) {
@@ -91,6 +51,35 @@ class Server {
                 }
             }
         });
+    }
+
+    private void sincronizeazaCeasurile() {
+        if(clientsList.isEmpty()) {
+            System.out.println("!!! lista de clienti este goala");
+        } else {
+            for (Client client: clientsList) {
+                syncTimeWith(client);
+            }
+        }
+    }
+
+    // Metodă pentru a sincroniza timpul cu fiecare client
+    public synchronized void syncTimeWith(Client client) {
+        client.setLocalTime(serverTime);
+        setTimeOffsetFor(client);
+    }
+
+    public void setTimeOffsetFor(Client client) {
+        try (Socket socket = new Socket(client.getIPAddress(), 9700);
+             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream())) {
+            oos.writeObject(client);
+        } catch (IOException e) {
+            System.out.println("eroare la setarea offset-ului");
+        }
+    }
+
+    private void afisareTimpLocal() {
+        afisareOraCurenta();
     }
 
     private void userInputHandler() throws UnknownHostException {
@@ -107,13 +96,31 @@ class Server {
                     sincronizeazaCeasurile();
                     break;
                 } case "show": {
-                    afisareTimpLocalClienti();
+                    afisareTimpLocal();
                     break;
-                } case "UTC+2": {
-                    serverTime += 2 * 60 * 60 * 1000;
+                } case "utc2": {
+                    // afisare ora veche
+                    afisareOraVeche();
+
+                    // actualizare + afisare ora noua
+                    serverTime = TimeUtils.getLocalTime() + (2 * 60 * 60 * 1000);
+                    afisareOraCurenta();
                     break;
-                } case "UTC+3": {
-                    serverTime += 3 * 60 * 60 * 1000;
+                } case "utc3": {
+                    // afisare ora veche
+                    afisareOraVeche();
+
+                    // actualizare + afisare ora noua
+                    serverTime = TimeUtils.getLocalTime() + (3 * 60 * 60 * 1000);
+                    afisareOraCurenta();
+                    break;
+                } case "reset": {
+                    // afisare ora veche
+                    afisareOraVeche();
+
+                    // actualizare + afisare ora noua
+                    serverTime = TimeUtils.getLocalTime();
+                    afisareOraCurenta();
                     break;
                 }
                 default: {
@@ -122,6 +129,18 @@ class Server {
                 }
             }
         }
+    }
+
+    private void afisareOraCurenta() {
+        Date res = new Date(serverTime);
+        DateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
+        System.out.println("[server] ora curenta este: " + sdf1.format(res));
+    }
+
+    private void afisareOraVeche() {
+        Date res = new Date(serverTime);
+        DateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
+        System.out.println("[server] ora veche a fost: " + sdf1.format(res));
     }
 
     private void afisareMesajInitial() {
@@ -137,20 +156,16 @@ class Server {
                 "    `sync` pentru a sincroniza ceasurile\n" +
                 "    `show` pentru afisare ora curenta pentru server si clienti\n" +
                 "    `exit` pentru iesire din program\n" +
-                "    `UTC+2` pentru a schimba ora cu 2 ore\n" +
-                "    `UTC+3` pentru a schimba ora cu 3 ore");
+                "    `utc2` pentru a schimba ora curenta cu 2 ore\n" +
+                "    `utc3` pentru a schimba ora curenta cu 3 ore\n" +
+                "    `reset` pentru a reseta ora la cea locala\n");
     }
 
     private void iesireProgram() {
-        try {
-            serverSocket.close();
-            clientSocket.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        System.exit(0);
     }
 
-    public int getServerTime() {
+    public long getServerTime() {
         return serverTime;
     }
 
