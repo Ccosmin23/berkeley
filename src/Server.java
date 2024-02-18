@@ -34,7 +34,7 @@ class Server {
         // Calculăm diferența de timp între server și client
         int timeOffset = client.getLocalTime() - serverTime;
 
-        client.setTimeOffset(timeOffset);
+        client.setLocalTime(serverTime);
         setTimeOffsetFor(client);
     }
 

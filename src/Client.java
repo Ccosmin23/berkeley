@@ -12,11 +12,14 @@ class Client implements Serializable {
     private String serverAddress = "192.168.30.10";
     private int serverPort = 9700;
     private String ipAddress;
+    private int clientTime;
 
     private int timeOffset; // Diferența de timp între server și client
     private ServerSocket serverSocket;
 
     public Client() {
+        clientTime = TimeUtils.getLocalTime();
+
         try {
             this.ipAddress = InetAddress.getLocalHost().getHostAddress();
             start();
@@ -37,9 +40,15 @@ class Client implements Serializable {
     }
 
     private void afisareOraCurenta() {
-        Date res = new Date(TimeUtils.getLocalTime());
+        Date res = new Date(clientTime);
         DateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
         System.out.println("\n - client, ora curenta: " + sdf1.format(res));
+    }
+
+    private void afisareOra(int miliseconds) {
+        Date res = new Date(miliseconds);
+        DateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
+        System.out.println("\n - client, ora veche inainte de actualizare: " + sdf1.format(res));
     }
 
     public int getTimeOffset() {
@@ -57,7 +66,11 @@ class Client implements Serializable {
     }
 
     public int getLocalTime() {
-        return TimeUtils.getLocalTime();
+        return clientTime;
+    }
+
+    public void setLocalTime(int time) {
+        clientTime = time;
     }
 
     public String getIPAddress() {
@@ -91,10 +104,14 @@ class Client implements Serializable {
                         ois = new ObjectInputStream(clientSocket.getInputStream());
 
                         Client clientulActualizat = (Client) ois.readObject();
-                        System.out.println("Am primit noul offset cu valoarea: " + clientulActualizat.timeOffset);
+
+                        System.out.println("Am primit noul offset");
 
                         if(clientulActualizat.ipAddress.equals(InetAddress.getLocalHost().getHostAddress())) {
-                            setTimeOffset(clientulActualizat.timeOffset);
+                            System.out.println("ora veche: \n");
+                            afisareOra(clientTime);
+
+                            setLocalTime(clientulActualizat.clientTime);
                             afisareOraCurenta();
                         } else {
                             System.out.println("nu este pentru mine" + clientulActualizat.ipAddress + " ggg " + InetAddress.getLocalHost().getHostAddress());
