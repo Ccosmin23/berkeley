@@ -2,8 +2,6 @@ import java.io.*;
 import java.net.*;
 
 public class Main {
-    static String[] clientAddresses = {"192.168.30.4", "192.168.30.7", "192.168.30.9"};
-
     public static void main(String[] args) {
         if (args.length == 0) {
             System.out.println("nu sunt destule argumente adaugate in comanda introdusa");
