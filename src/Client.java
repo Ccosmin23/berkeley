@@ -3,6 +3,9 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 // Clasa care reprezintă un client în rețeaua locală
 class Client implements Serializable {
@@ -31,6 +34,12 @@ class Client implements Serializable {
             System.out.println("eroare la creerea clientului");
             e.printStackTrace();
         }
+    }
+
+    private void afisareOraCurenta() {
+        Date res = new Date(TimeUtils.getLocalTime());
+        DateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
+        System.out.println("\n - client, ora curenta: " + sdf1.format(res));
     }
 
     // Metodă pentru a conecta la server și a trimite timpul local

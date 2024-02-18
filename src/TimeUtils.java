@@ -10,6 +10,10 @@ class TimeUtils {
         return (int) (System.currentTimeMillis() / 1000);
     }
 
+    public static int setUTC2LocalTime() {
+        return (int) (System.currentTimeMillis() / 1000 + 2);
+    }
+
     // Metodă pentru a citi timpul local de pe un socket
     public static int getLocalTimeFromSocket(Socket socket) throws IOException {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {

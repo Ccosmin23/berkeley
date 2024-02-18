@@ -1,6 +1,9 @@
 import java.io.*;
 import java.net.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -8,8 +11,10 @@ class Server {
     private List<Client> clientsList = new ArrayList<>();
     private ServerSocket serverSocket;
     private Socket clientSocket;
+    int serverTime;
 
     public void start() throws IOException, ClassNotFoundException {
+        serverTime = TimeUtils.setUTC2LocalTime();
         receive().start();
         userInputHandler();
     }
@@ -27,10 +32,9 @@ class Server {
     // Metodă pentru a sincroniza timpul cu fiecare client
     public synchronized void syncTimeWith(Client client) {
         // Calculăm diferența de timp între server și client
-        int serverTime = (int) (System.currentTimeMillis() / 1000);
         int timeOffset = client.getLocalTime() - serverTime;
+
         client.setTimeOffset(timeOffset);
-        // Setăm diferența de timp pentru client adica ii trimitem clientului noua valoare a timpului
         setTimeOffsetFor(client);
     }
 
@@ -43,8 +47,14 @@ class Server {
         }
     }
 
-    private void afisareTimpLocalClienti() {
+    private void afisareOraCurenta(int miliSeconds) {
+        Date res = new Date(miliSeconds);
+        DateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
+        System.out.println("\n - server, ora curenta: " + sdf1.format(res));
+    }
 
+    private void afisareTimpLocalClienti() {
+        afisareOraCurenta(serverTime);
     }
 
     public Thread receive () {
@@ -72,7 +82,7 @@ class Server {
                         Client clientAdaugat = (Client) ois.readObject();
 
                         if (clientAdaugat != null) {
-                            System.out.println("A fost creat un nou client cu adresa: " + clientAdaugat.getIPAddress());
+                            System.out.println("\nA fost creat un nou client cu adresa: " + clientAdaugat.getIPAddress());
                             clientsList.add(clientAdaugat);
                         }
                     } catch (IOException e) {
@@ -101,6 +111,12 @@ class Server {
                 } case "show": {
                     afisareTimpLocalClienti();
                     break;
+                } case "UTC+2": {
+                    setServerTime(2);
+                    break;
+                } case "UTC+3": {
+                    setServerTime(3);
+                    break;
                 }
                 default: {
                     System.out.println("s-au introdus gresit argumentele");
@@ -121,8 +137,10 @@ class Server {
     private void afisareMeniuPrincipal() {
         System.out.println("Introduceti de la tastatura una din comenzile de mai jos:\n" +
                 "    `sync` pentru a sincroniza ceasurile\n" +
-                "    `show` pentru afisare timp local\n" +
-                "    `exit` pentru iesire din program\n");
+                "    `show` pentru afisare ora curenta pentru server si clienti\n" +
+                "    `exit` pentru iesire din program\n" +
+                "    `UTC+2` pentru a schimba ora cu 2 ore\n" +
+                "    `UTC+3` pentru a schimba ora cu 3 ore");
     }
 
     private void iesireProgram() {
@@ -132,5 +150,13 @@ class Server {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public int getServerTime() {
+        return serverTime;
+    }
+
+    public void setServerTime(int serverTime) {
+        this.serverTime = serverTime;
     }
 }
