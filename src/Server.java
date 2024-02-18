@@ -48,6 +48,7 @@ class Server {
     }
 
     private void afisareOraCurenta(int miliSeconds) {
+        System.out.println("milisec = " + miliSeconds);
         Date res = new Date(miliSeconds);
         DateFormat sdf1 = new SimpleDateFormat("HH:mm:ss");
         System.out.println("\n - server, ora curenta: " + sdf1.format(res));
@@ -62,9 +63,6 @@ class Server {
             @Override
             public void run () {
                 Socket clientSocket;
-                DataInputStream clientIStream;
-                DataOutputStream clientOStream;
-                ObjectOutputStream oos;
                 ObjectInputStream ois;
 
                 try {
@@ -112,10 +110,10 @@ class Server {
                     afisareTimpLocalClienti();
                     break;
                 } case "UTC+2": {
-                    setServerTime(2);
+                    serverTime += 2 * 60 * 60 * 1000;
                     break;
                 } case "UTC+3": {
-                    setServerTime(3);
+                    serverTime += 3 * 60 * 60 * 1000;
                     break;
                 }
                 default: {

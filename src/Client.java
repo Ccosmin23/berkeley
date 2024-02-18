@@ -42,19 +42,6 @@ class Client implements Serializable {
         System.out.println("\n - client, ora curenta: " + sdf1.format(res));
     }
 
-    // Metodă pentru a conecta la server și a trimite timpul local
-    public void connectToServer() {
-        try (Socket socket = new Socket(serverAddress, serverPort);
-             PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
-
-            // Trimitem timpul local la server
-            out.println(TimeUtils.getLocalTime());
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public int getTimeOffset() {
         return timeOffset;
     }
@@ -108,6 +95,7 @@ class Client implements Serializable {
 
                         if(clientulActualizat.ipAddress.equals(InetAddress.getLocalHost().getHostAddress())) {
                             setTimeOffset(clientulActualizat.timeOffset);
+                            afisareOraCurenta();
                         } else {
                             System.out.println("nu este pentru mine" + clientulActualizat.ipAddress + " ggg " + InetAddress.getLocalHost().getHostAddress());
                         }
