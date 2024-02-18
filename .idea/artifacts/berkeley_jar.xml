@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="berkeley:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/berkeley_jar</output-path>
+    <root id="archive" name="berkeley.jar">
+      <element id="module-output" name="berkeley" />
+    </root>
+  </artifact>
+</component>
